@@ -1,18 +1,27 @@
+var fs = require("fs");
+var path = require('path');
+var morgan = require('morgan');
 var express = require('express');
+var sd = require('silly-datetime');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var fs = require("fs");
-var sd = require('silly-datetime');
 
+var logsCache = [];
+
+var accessLogStream = fs.createWriteStream(path.join(__dirname, 'log/access.log'), {flags: 'a'});
+
+app.use(morgan('short', {stream: accessLogStream}));
 app.use(express.static('public'));
 
 app.get('/test', function(req, res){
-  res.send("This is test infomation!\n");
+    res.send("This is test infomation!\n");
+    log(req.ip + ' has just visited /test', 'URL');
 });
 
 app.get('/log/:day', function(req, res){
     var day = req.params.day;
+    log(req.ip + ' has just visited /log/' + day, 'URL');
     fs.readFile('log/' + day, (err, data) => {
         if(err){
             res.send("Failed to read log file!");
@@ -24,6 +33,7 @@ app.get('/log/:day', function(req, res){
 });
 
 app.get('/log', function(req, res){
+    log(req.ip + ' has just visited /log', 'URL');
     fs.readdir("log/", function(err, files){
         if(err){
             res.send("Failed to read log file!");
@@ -40,6 +50,7 @@ app.get('/log', function(req, res){
 });
 
 app.get('/log/today', function(req, res){
+    log(req.ip + ' has just visited /log/today', 'URL');
     var todayLog = 'log/' + sd.format(new Date(), 'YYYY-MM-DD') + '.log';
     fs.readFile(todayLog, (err, data) => {
         if(err){
@@ -65,20 +76,19 @@ gameCount = 0
 players = {};
 games = {};
 
-logsCache = [];
+
 
 
 function log(str, type="UNTYPE"){
     today = sd.format(new Date(), 'YYYY-MM-DD');
     nowtime = sd.format(new Date(), 'HH:mm:ss');
-    thelog = today + ' ' + nowtime + '  ['  + type + ']  ' + str;
+    thelog = today + ' ' + nowtime + '\t['  + type + ']\t' + str + '\n';
     logsCache.push(thelog);
     if(logsCache.length > 20){
         var strToWrite = ""
         logsCache.forEach(log =>{
-            strToWrite += (log + '\n');
+            strToWrite += ('<p>' + log + '</p>');
         });
-        console.log(logsCache);
         fs.appendFile('log/' + today + '.log', strToWrite, 'utf8', err => {
             if(err){
                 console.log("ERROR: Write log failed!");

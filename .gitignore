@@ -43,4 +43,4 @@ bower_components/
 dist/ 
 
 
-log/
+.log

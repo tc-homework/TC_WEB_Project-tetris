@@ -527,6 +527,11 @@ setprototypeof@1.1.1:
   resolved "https://registry.npm.taobao.org/setprototypeof/download/setprototypeof-1.1.1.tgz#7e95acb24aa92f5885e0abef5ba131330d4ae683"
   integrity sha1-fpWsskqpL1iF4KvvW6ExMw1K5oM=
 
+silly-datetime@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.npm.taobao.org/silly-datetime/download/silly-datetime-0.1.2.tgz#21978e8e8d8481616063ac112ff14693f06eb85b"
+  integrity sha1-IZeOjo2EgWFgY6wRL/FGk/BuuFs=
+
 socket.io-adapter@0.5.0:
   version "0.5.0"
   resolved "https://registry.npm.taobao.org/socket.io-adapter/download/socket.io-adapter-0.5.0.tgz#cb6d4bb8bec81e1078b99677f9ced0046066bb8b"

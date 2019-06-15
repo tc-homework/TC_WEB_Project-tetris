@@ -2,17 +2,59 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
+var fs = require("fs");
+var sd = require('silly-datetime');
 
 app.use(express.static('public'));
 
 app.get('/test', function(req, res){
-  res.send("sdfsdf");
+  res.send("This is test infomation!\n");
+});
+
+app.get('/log/:day', function(req, res){
+    var day = req.params.day;
+    fs.readFile('log/' + day, (err, data) => {
+        if(err){
+            res.send("Failed to read log file!");
+        }
+        else{
+            res.send('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>log: ' + day + '</title></head><body>' + data.toString() + '</body></html>');                                       
+        }
+    });
+});
+
+app.get('/log', function(req, res){
+    fs.readdir("log/", function(err, files){
+        if(err){
+            res.send("Failed to read log file!");
+        }
+        else{
+            links = "";
+            files.reverse();
+            files.forEach(function(filename){
+                links += '<a href=\"log/' + filename + '\">' + filename + '</a><br>';
+            });
+            res.send('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>logs</title></head><body>' + links + '</body></html>');                                       
+        }
+    });
+});
+
+app.get('/log/today', function(req, res){
+    var todayLog = 'log/' + sd.format(new Date(), 'YYYY-MM-DD') + '.log';
+    fs.readFile(todayLog, (err, data) => {
+        if(err){
+            res.send("Failed to read log file!");
+        }
+        else{
+            res.send('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>log: today</title></head><body>' + data.toString() + '</body></html>');                                       
+        }
+    });
 });
 
 
-http.listen(3000, function(){
-  console.log('listening on http://localhost:3000/');
+
+http.listen(80, function(){
+  console.log('listening on http://localhost:80/');
 });
     
 
@@ -22,6 +64,31 @@ playerCount = 0
 gameCount = 0
 players = {};
 games = {};
+
+logsCache = [];
+
+
+function log(str, type="UNTYPE"){
+    today = sd.format(new Date(), 'YYYY-MM-DD');
+    nowtime = sd.format(new Date(), 'HH:mm:ss');
+    thelog = today + ' ' + nowtime + '  ['  + type + ']  ' + str;
+    logsCache.push(thelog);
+    if(logsCache.length > 20){
+        var strToWrite = ""
+        logsCache.forEach(log =>{
+            strToWrite += (log + '\n');
+        });
+        console.log(logsCache);
+        fs.appendFile('log/' + today + '.log', strToWrite, 'utf8', err => {
+            if(err){
+                console.log("ERROR: Write log failed!");
+            }
+            else{
+                logsCache = [];
+            }
+        });
+    }
+};
 
 
 
@@ -38,20 +105,20 @@ io.on('connection', socket => {
     socket.removeAllListeners();
     socket.on('login', data => {
         if(players[data['id']] == undefined){
-            console.log(data['id'] + '已登陆');
+            log(data['id'] + '已登陆', 'LOGIN');
             var aPlayer = new Player(socket, data['name'], data['id']);
             players[data['id']] = aPlayer;
-            console.log('当前玩家数: ' + countAllPlayer());
+            log('当前玩家数: ' + countAllPlayer(), 'PLAYER');
         }
         else{
-            console.log(data['id'] + '重新登陆');
-            console.log('当前玩家数: ' + countAllPlayer());
+            log(data['id'] + '重新登陆', 'LOGIN');
+            log('当前玩家数: ' + countAllPlayer(), 'PLAYER');
             players[data['id']].play = false;
         }
     });
 
     socket.on('match', data =>{
-        console.log(data['id'] + '正在请求匹配, 当前空闲玩家数: ' + countFreePlayer());
+        log(data['id'] + '正在请求匹配, 当前空闲玩家数: ' + countFreePlayer(), 'MATCH');
         if(players[data['id']].play == true){quit(data['id']);}
         if(countAllPlayer() >= 2){
             if(countFreePlayer() > 1){
@@ -64,8 +131,8 @@ io.on('connection', socket => {
                 games[other_id] = data['id'];
                 players[data['id']].socket.emit('match_success', players[other_id].name);
                 players[other_id].socket.emit('match_success', players[data['id']].name);
-                console.log(data['id'] + '匹配: ' + other_id);
-                console.log(other_id + '匹配: ' + data['id']);
+                log(data['id'] + ' 匹配 ' + other_id, 'MATCH');
+                log(other_id + ' 匹配 ' + data['id'], 'MATCH');
             }
         }
     });
@@ -75,37 +142,38 @@ io.on('connection', socket => {
         if(players[data['id']] != undefined){
             quit(data['id'], 2);
             delete players[data['id']];
-            console.log(data['id'] + "退出.");
-            console.log('当前玩家数: ' + countAllPlayer());
+            log(data['id'] + "退出.", 'QUIT');
+            log('当前玩家数: ' + countAllPlayer(), 'PLAYERS');
         }
     });
 
     socket.on('data', data => {
         if(players[games[data['id']]] != undefined){
-            //console.log('已收到' + data['id'] + '的数据, 发往' + games[data['id']]);
+            //log('已收到' + data['id'] + '的数据, 发往' + games[data['id']], 'DATA');
             players[games[data['id']]].socket.emit('data', data['layout']);
         }
     });
 
     socket.on('lose', data => {
         if(players[games[data['id']]] != undefined){
-            console.log(data['id'] + '失败, ' + players[games[data['id']]].id + '取得胜利.')
+            log(data['id'] + '失败, ' + players[games[data['id']]].id + '取得胜利.', 'WIN')
             quit(data['id'], 1);
             delete players[data['id']];
         }
     });
 
     socket.on('get_line', data => {
-        console.log('get!');
         if(players[data['id']] != undefined){
             players[data['id']].line += data['line'];
-            console.log(data['id'] + '消去了' + data['line'] + '行, 当前余额: ' + players[data['id']].line + '行.');
+            log(data['id'] + '消去了' + data['line'] + '行, 当前余额: ' + players[data['id']].line + '行.', 'LINE');
             if(players[data['id']].line >= 2){
                 if(players[games[data['id']]] != undefined){
-                    players[games[data['id']]].socket.emit('add_line');
+                    while(players[data['id']].line >= 2){
+                        players[games[data['id']]].socket.emit('add_line');
+                        players[data['id']].line -= 2;
+                    }
                 }
-                players[data['id']].line %= 2;
-                console.log(data['id'] + '当前余额: ' + players[data['id']].line + '行.');
+                log(data['id'] + '当前余额: ' + players[data['id']].line + '行.', 'LINE');
             }
         }
     });
@@ -119,8 +187,8 @@ io.on('connection', socket => {
     });
 
     socket.on('test', data => {
-        console.log('This is test socket event: ');
-        console.log(data);
+        log('This is test socket event: ', 'TEST');
+        log(data.toString(), 'TEST');
     });
 });
 

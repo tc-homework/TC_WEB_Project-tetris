@@ -24,6 +24,11 @@ This is the web final project - a Multiplayer online match or cooperation (still
 
 ![3](img/3.png)
 
+<h4 align="center">Confrontation Mode Page 2</h4>
+
+![3](img/11.gif)
+
+
 <h4 align="center">Cooperation Mode Page <span style="color:rgba(0,0,0,0.5); font-size:16px"> (Still on building)</span></h4>
 
 ![4](img/4.png)

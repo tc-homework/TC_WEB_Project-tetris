@@ -7,6 +7,7 @@
     <title>Help</title>
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/help.css">
+    <script src="https://cdn.bootcss.com/socket.io/2.2.0/socket.io.js"></script>
 </head>
 <body>
     <div id="background"></div>
@@ -24,7 +25,20 @@
             <p>对对手造成增行效果后, 对手上升的底部砖块如果恰好与仍在下落的方块接触, 此方块仍可继续下落一格, 而底部砖块最顶一层会随机消失部分砖块, 因此在合适的时机控制方块可以对对手造成更大的 Debuff.</p>
             <br>
             <p>本项目详细文档在<a href="https://github.com/acdzh/TC_WEB_Project-tetris">https://github.com/acdzh</a></p>
+            <p>当前在线: <span id="allpeople">0</span>人, 等待匹配: <span id="matching">0</span>人.</p>
         </div>
     <div id="footer" ><a href="https://github.com/acdzh/TC_WEB_Project-tetris">Design by 1751130</a></div>
 </body>
+
+
+<script>
+var socket = io();
+socket.emit('people');
+socket.on('people', data=>{
+    document.getElementById('allpeople').innerHTML = data['all'];
+    document.getElementById('matching').innerHTML = data['matching'];
+    console.log(data);
+});
+</script>
+
 </html>

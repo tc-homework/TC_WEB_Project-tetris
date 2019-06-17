@@ -200,7 +200,12 @@ io.on('connection', socket => {
         log('This is test socket event: ', 'TEST');
         log(data.toString(), 'TEST');
     });
+
+    socket.on('people', ()=>{
+        socket.emit('people', {'all': countAllPlayer(), 'matching': countFreePlayer()});
+    });
 });
+
 
 
 

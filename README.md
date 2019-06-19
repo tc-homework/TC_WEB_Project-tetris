@@ -2,9 +2,12 @@
 
 ![](https://badgen.net/badge/Windows%2010/1903/blue) ![](https://badgen.net/badge/Ubuntu/18.04/orange) ![](https://badgen.net/badge/Node.js/v10.15.0/green) ![](https://badgen.net/badge/yarn/v1.15.2/cyan) ![](https://badgen.net/badge/Express.js/v4.17.1/blue) ![](https://badgen.net/badge/socket.io/v2.2.0/black) ![](https://badgen.net/badge/build/passing/green) 
 
-**Writen by** @1751130
+**Writen by** [@1751130](https://github.com/acdzh/)
 
 **Live Demo :**  [http://47.100.60.154/](http://47.100.60.154/)
+
+**Github :** [Tetris](https://github.com/acdzh/TC_WEB_Project-tetris)
+
 
 This is the web final project - a Multiplayer online match or cooperation (still on building) tetris game (also including stand-alone version).
 

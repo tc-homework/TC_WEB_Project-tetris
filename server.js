@@ -228,7 +228,7 @@ function quit(id, why){
         }
         delete games[id];
     }
-    if(players[id] != undefined){
+    if(players[id] != undefined){  
         players[id].play = false;
         players[id].line = false;
     }
